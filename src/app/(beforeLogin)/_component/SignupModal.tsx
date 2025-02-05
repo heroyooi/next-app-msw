@@ -1,47 +1,36 @@
-import BackButton from '@/app/(afterLogin)/_component/BackButton';
+'use client';
+
 import style from '@/app/(beforeLogin)/_component/signup.module.css';
-import { redirect } from 'next/navigation';
+import onSubmit from '../_lib/signup';
+import BackButton from '@/app/(afterLogin)/_component/BackButton';
+import { useFormState, useFormStatus } from 'react-dom';
+
+function showMessage(message: string | null | undefined) {
+  if (message === 'no_id') {
+    return '아이디를 입력하세요.';
+  }
+  if (message === 'no_name') {
+    return '닉네임을 입력하세요.';
+  }
+  if (message === 'no_password') {
+    return '비밀번호를 입력하세요.';
+  }
+  if (message === 'no_image') {
+    return '이미지를 업로드하세요.';
+  }
+  if (message === 'user_exists') {
+    return '이미 사용 중인 아이디입니다.';
+  }
+  if (message === 'nickname must be a string') {
+    return '닉네임이 필요합니다.';
+  }
+  return message;
+}
 
 export default function SignupModal() {
-  const submit = async (formData: FormData) => {
-    'use server';
-    if (!formData.get('id')) {
-      return { message: 'no_id' };
-    }
-    if (!formData.get('name')) {
-      return { message: 'no_name' };
-    }
-    if (!formData.get('password')) {
-      return { message: 'no_password' };
-    }
-    if (!formData.get('image')) {
-      return { message: 'no_image' };
-    }
-    let shouldRedirect = false;
-    try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_URL}/api/users`,
-        {
-          method: 'post',
-          body: formData,
-          credentials: 'include', // 쿠키가 전달됨
-        }
-      );
-      console.log(response.status);
-      if (response.status === 403) {
-        return { message: 'user_exists' };
-      }
-      console.log(await response.json());
-      shouldRedirect = true;
-    } catch (err) {
-      console.error(err);
-      return;
-    }
+  const [state, formAction] = useFormState(onSubmit, { message: null });
+  const { pending } = useFormStatus();
 
-    if (shouldRedirect) {
-      redirect('/home'); // try/catch문 안에서 X
-    }
-  };
   return (
     <>
       <div className={style.modalBackground}>
@@ -50,65 +39,70 @@ export default function SignupModal() {
             <BackButton />
             <div>계정을 생성하세요.</div>
           </div>
-          <form action={submit}>
+          <form action={formAction}>
             <div className={style.modalBody}>
               <div className={style.inputDiv}>
-                <label className={style.inputLabel} htmlFor='id'>
+                <label className={style.inputLabel} htmlFor="id">
                   아이디
                 </label>
                 <input
-                  id='id'
-                  name='id'
+                  id="id"
+                  name="id"
                   className={style.input}
-                  type='text'
-                  placeholder=''
+                  type="text"
+                  placeholder=""
                   required
                 />
               </div>
               <div className={style.inputDiv}>
-                <label className={style.inputLabel} htmlFor='name'>
+                <label className={style.inputLabel} htmlFor="name">
                   닉네임
                 </label>
                 <input
-                  id='name'
-                  name='name'
+                  id="name"
+                  name="name"
                   className={style.input}
-                  type='text'
-                  placeholder=''
+                  type="text"
+                  placeholder=""
                   required
                 />
               </div>
               <div className={style.inputDiv}>
-                <label className={style.inputLabel} htmlFor='password'>
+                <label className={style.inputLabel} htmlFor="password">
                   비밀번호
                 </label>
                 <input
-                  id='password'
-                  name='password'
+                  id="password"
+                  name="password"
                   className={style.input}
-                  type='password'
-                  placeholder=''
+                  type="password"
+                  placeholder=""
                   required
                 />
               </div>
               <div className={style.inputDiv}>
-                <label className={style.inputLabel} htmlFor='image'>
+                <label className={style.inputLabel} htmlFor="image">
                   프로필
                 </label>
                 <input
-                  id='image'
-                  name='image'
+                  id="image"
+                  name="image"
                   className={style.input}
-                  type='file'
-                  accept='image/*'
+                  type="file"
+                  accept="image/*"
                   required
                 />
               </div>
             </div>
             <div className={style.modalFooter}>
-              <button type='submit' className={style.actionButton}>
+              <button
+                type="submit"
+                className={style.actionButton}
+                disabled={pending}
+              >
                 가입하기
               </button>
+              <div className={style.error}>{showMessage(state?.message)}</div>
             </div>
           </form>
         </div>
