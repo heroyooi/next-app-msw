@@ -1,5 +1,6 @@
 'use server';
 
+import { signIn } from '@/auth';
 import { redirect } from 'next/navigation';
 
 export default async (prevState: any, formData: FormData) => {
@@ -34,6 +35,13 @@ export default async (prevState: any, formData: FormData) => {
     }
     console.log(await response.json());
     shouldRedirect = true;
+    await signIn('credentials', {
+      // username과 password는 NextAuth에서 고정
+      username: formData.get('id'),
+      password: formData.get('password'),
+      // 서버 리다이렉트 OFF(redirect를 true로 하면 서버쪽에서 리다이렉트를 함)
+      redirect: false,
+    });
   } catch (err) {
     console.error(err);
     return { message: null };
